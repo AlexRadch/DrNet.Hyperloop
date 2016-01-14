@@ -61,19 +61,19 @@ namespace YieldForEachApp
         [IteratorStateMachine(typeof(FromToNestedHackedС))]
         static IEnumerable<int> FromToNestedHacked(int b, int e)
         {
-            FromToNestedHackedС nestedHackedD2 = new FromToNestedHackedС(-2);
-            nestedHackedD2._b = b;
-            nestedHackedD2._e = e;
-            return nestedHackedD2;
+            FromToNestedHackedС src = new FromToNestedHackedС(-2);
+            src._b = b;
+            src._e = e;
+            return src;
         }
 
-        [IteratorStateMachine(typeof(FromToNestedStackedС))]
-        static IEnumerable<int> FromToNestedStacked(int b, int e)
+        [IteratorStateMachine(typeof(FromToNestedRecursiveС))]
+        static IEnumerable<int> FromToNestedRecursive(int b, int e)
         {
-            FromToNestedStackedС nestedStackedD2 = new FromToNestedStackedС(-2);
-            nestedStackedD2._b = b;
-            nestedStackedD2._e = e;
-            return nestedStackedD2;
+            FromToNestedRecursiveС src = new FromToNestedRecursiveС(-2);
+            src._b = b;
+            src._e = e;
+            return src;
         }
 
         [CompilerGenerated]
@@ -87,7 +87,6 @@ namespace YieldForEachApp
             private int e;
             public int _e;
             private IEnumerator<int> _1;
-            private int _2;
 
             int IEnumerator<int>.Current
             {
@@ -159,8 +158,7 @@ namespace YieldForEachApp
                     }
                     if (_1.MoveNext())
                     {
-                        _2 = _1.Current;
-                        current = _2;
+                        current = _1.Current;
                         state = 2;
                         return true;
                     }
@@ -192,17 +190,17 @@ namespace YieldForEachApp
             [DebuggerHidden]
             IEnumerator<int> IEnumerable<int>.GetEnumerator()
             {
-                FromToNestedHackedС nestedHackedD2;
+                FromToNestedHackedС src;
                 if (state == -2 && initialThreadId == Environment.CurrentManagedThreadId)
                 {
-                    this.state = 0;
-                    nestedHackedD2 = this;
+                    state = 0;
+                    src = this;
                 }
                 else
-                    nestedHackedD2 = new FromToNestedHackedС(0);
-                nestedHackedD2.b = _b;
-                nestedHackedD2.e = _e;
-                return nestedHackedD2;
+                    src = new FromToNestedHackedС(0);
+                src.b = _b;
+                src.e = _e;
+                return src;
             }
 
             [DebuggerHidden]
@@ -213,7 +211,7 @@ namespace YieldForEachApp
         }
 
         [CompilerGenerated]
-        private sealed class FromToNestedStackedС : IEnumerable<int>, IEnumerable, IEnumerator<int>, IDisposable, IEnumerator
+        private sealed class FromToNestedRecursiveС : IRecursiveEnumerable<int>, IEnumerable<int>, IEnumerable, IEnumerator<int>, IDisposable, IEnumerator
         {
             private int state;
             private int current;
@@ -223,7 +221,7 @@ namespace YieldForEachApp
             private int e;
             public int _e;
             private IEnumerator<int> _1;
-            private int _2;
+            private Stack<IEnumerator<int>> stack;
 
             int IEnumerator<int>.Current
             {
@@ -244,9 +242,10 @@ namespace YieldForEachApp
             }
 
             [DebuggerHidden]
-            public FromToNestedStackedС(int state)
+            public FromToNestedRecursiveС(int state, Stack<IEnumerator<int>> stack)
             {
                 this.state = state;
+                this.stack = stack;
                 initialThreadId = Environment.CurrentManagedThreadId;
             }
 
@@ -277,29 +276,46 @@ namespace YieldForEachApp
                     {
                         case 0:
                             state = -1;
-                            if (b > e)
+                            if (stack == null)
+                            {
+                                stack = new Stack<IEnumerator<int>>();
+                                stack.Push(this);
+                            }
+                                if (b > e)
                                 return false;
                             current = b;
                             state = 1;
                             return true;
                         case 1:
                             state = -1;
-                            _1 = FromToNestedHacked(b + 1, e).GetEnumerator();
+
+                            //_1 = FromToNestedHacked(b + 1, e).GetEnumerator();
+                            var src = FromToNestedHacked(b + 1, e);
+                            var recursive = src as IRecursiveEnumerable<int>;
+                            if (recursive != null)
+                                _1 = recursive.GetEnumerator(stack);
+                            else
+                                _1 = src.GetEnumerator();
+
                             state = -3;
-                            break;
+
+                            //break;
+                            stack.Push(_1);
+                            state = 2;
+                            return false;
+
                         case 2:
                             this.state = -3;
                             break;
                         default:
                             return false;
                     }
-                    if (_1.MoveNext())
-                    {
-                        _2 = _1.Current;
-                        current = _2;
-                        state = 2;
-                        return true;
-                    }
+                    //if (_1.MoveNext())
+                    //{
+                    //    current = _1.Current;
+                    //    state = 2;
+                    //    return true;
+                    //}
                     Finally1();
                     _1 = null;
                     return false;
@@ -326,19 +342,20 @@ namespace YieldForEachApp
             }
 
             [DebuggerHidden]
-            IEnumerator<int> IEnumerable<int>.GetEnumerator()
+            IEnumerator<int> IRecursiveEnumerable<int>.GetEnumerator(Stack<IEnumerator<int>> stack)
             {
-                FromToNestedStackedС nestedStackedD2;
+                FromToNestedRecursiveС src;
                 if (state == -2 && initialThreadId == Environment.CurrentManagedThreadId)
                 {
-                    this.state = 0;
-                    nestedStackedD2 = this;
+                    state = 0;
+                    this.stack = stack;
+                    src = this;
                 }
                 else
-                    nestedStackedD2 = new FromToNestedStackedС(0);
-                nestedStackedD2.b = _b;
-                nestedStackedD2.e = _e;
-                return nestedStackedD2;
+                    src = new FromToNestedRecursiveС(0, stack);
+                src.b = _b;
+                src.e = _e;
+                return src;
             }
 
             [DebuggerHidden]
@@ -349,9 +366,33 @@ namespace YieldForEachApp
         }
     }
 
-    interface IRecursiveEnumerator<T>: IEnumerator<T>
+    interface IRecursiveEnumerable</*out*/ T>: IEnumerable<T>
     {
-        void SetStack(Stack<IRecursiveEnumerator<T>> stack);
+        IEnumerator<T> GetEnumerator(Stack<IEnumerator<T>> stack);
     }
 
+    public sealed class RecursiveEnumerator<T> : IEnumerator<T>, IEnumerator, IDisposable
+    {
+        public RecursiveEnumerator(IEnumerable<T> src)
+        {
+
+        }
+        T IEnumerator<T>.Current
+        {
+            get
+            {
+                throw new NotImplementedException();
+            }
+        }
+
+        void IDisposable.Dispose()
+        {
+            throw new NotImplementedException();
+        }
+
+        void IEnumerator.Reset()
+        {
+            throw new NotImplementedException();
+        }
+    }
 }
