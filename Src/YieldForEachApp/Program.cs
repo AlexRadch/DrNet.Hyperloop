@@ -21,18 +21,47 @@ namespace YieldForEachApp
             var timesLen = times.ToString().Length.ToString(CultureInfo.InvariantCulture);
 
 
-            var fmt = string.Format("Standart from {{0,{0}}} to {{1,{1}}}, {{2,{2}}} times: {{3,10}} ticks", bLen, endLen, timesLen);
+            var fmt = string.Format("{{0, 10}} from {{1,{0}}} to {{2,{1}}}, {{3,{2}}} times: {{4,9}} ticks. Equal {{5,6}}", bLen, endLen, timesLen);
             for (var e = 1; e <= end;  e *= 2)
             {
-                var time = Benchmark(times, () => FromToNestedStandart(b, e).Count());
-                Console.WriteLine(fmt, b, e, times, time);
+                var time = Benchmark(times, () => FromToNestedStandart(b, e).Sum());
+                Console.WriteLine(fmt, "Old", b, e, times, time.Item1, time.Item2);
             }
 
-            fmt = string.Format("Hacked   from {{0,{0}}} to {{1,{1}}}, {{2,{2}}} times: {{3,10}} ticks", bLen, endLen, timesLen);
             for (var e = 1; e <= end; e *= 2)
             {
-                var time = Benchmark(times, () => FromToNestedHacked(b, e).Count());
-                Console.WriteLine(fmt, b, e, times, time);
+                var time = Benchmark(times, () => FromToNestedHacked(b, e).Sum());
+                Console.WriteLine(fmt, "Hacked", b, e, times, time.Item1, time.Item2);
+            }
+
+            for (var e = 1; e <= end; e *= 2)
+            {
+                var time = Benchmark(times, () => FromToNestedOldHyperloopNoTail(b, e).Sum());
+                Console.WriteLine(fmt, "OHLnoTail", b, e, times, time.Item1, time.Item2);
+            }
+
+            for (var e = 1; e <= end; e *= 2)
+            {
+                var time = Benchmark(times, () => FromToNestedOldHyperloopWithTail(b, e).Sum());
+                Console.WriteLine(fmt, "OHLwTail", b, e, times, time.Item1, time.Item2);
+            }
+
+            for (var e = 1; e <= end; e *= 2)
+            {
+                var time = Benchmark(times, () => Enumerable.Range(b, e - b + 1).Sum());
+                Console.WriteLine(fmt, "Range", b, e, times, time.Item1, time.Item2);
+            }
+
+            for (var e = 1; e <= end; e *= 2)
+            {
+                var time = Benchmark(times, () => RangeOldHyperloop(b, e).Sum());
+                Console.WriteLine(fmt, "OHL Range", b, e, times, time.Item1, time.Item2);
+            }
+
+            for (var e = 1; e <= end; e *= 2)
+            {
+                var time = Benchmark(times, () => RangeHyperloop(b, e).Sum());
+                Console.WriteLine(fmt, "HL Range", b, e, times, time.Item1, time.Item2);
             }
 
             Console.ReadLine();
@@ -49,6 +78,17 @@ namespace YieldForEachApp
             return sw.ElapsedTicks;
         }
 
+        static Tuple<long, T> Benchmark<T>(int times, Func<T> func)
+        {
+            GC.Collect();
+            var res = func(); // run once outside of loop to avoid initialization costs
+            Stopwatch sw = Stopwatch.StartNew();
+            while (--times >= 0)
+                func();
+            sw.Stop();
+            return Tuple.Create(sw.ElapsedTicks, res);
+        }
+
         static IEnumerable<int> FromToNestedStandart(int b, int e)
         {
             if (b > e)
@@ -58,19 +98,52 @@ namespace YieldForEachApp
                 yield return v;
         }
 
+        static IEnumerable<int> FromToNestedOldHyperloopNoTail(int b, int e)
+        {
+            var hl = new OldHyperloop<int>();
+            hl.AddLoop(FromToNestedOldHyperloopNoTailLoop(b, e, hl).GetEnumerator());
+            return hl;
+        }
+
+        private static IEnumerable<int> FromToNestedOldHyperloopNoTailLoop(int b, int e, IHyperloop<int> hl)
+        {
+            if (b > e)
+                yield break;
+            yield return b;
+            hl.AddLoop(FromToNestedOldHyperloopNoTailLoop(b + 1, e, hl).GetEnumerator());
+        }
+
+        static IEnumerable<int> FromToNestedOldHyperloopWithTail(int b, int e)
+        {
+            var hl = new OldHyperloop<int>();
+            hl.AddLoop(FromToNestedOldHyperloopWithTailLoop(b, e, hl).GetEnumerator());
+            return hl;
+        }
+
+        private static IEnumerable<int> FromToNestedOldHyperloopWithTailLoop(int b, int e, IHyperloop<int> hl)
+        {
+            if (b > e)
+                yield break;
+            yield return b;
+            hl.AddTail(FromToNestedOldHyperloopWithTailLoop(b + 1, e, hl).GetEnumerator());
+        }
+
+        static IEnumerable<int> RangeOldHyperloop(int b, int e)
+        {
+            var hl = new OldHyperloop<int>();
+            hl.AddLoop(Enumerable.Range(b, e - b + 1).GetEnumerator());
+            return hl;
+        }
+
+        static IEnumerable<int> RangeHyperloop(int b, int e)
+        {
+            return new Hyperloop<int>(Enumerable.Range(b, e - b + 1));
+        }
+
         [IteratorStateMachine(typeof(FromToNestedHackedС))]
         static IEnumerable<int> FromToNestedHacked(int b, int e)
         {
             FromToNestedHackedС src = new FromToNestedHackedС(-2);
-            src._b = b;
-            src._e = e;
-            return src;
-        }
-
-        [IteratorStateMachine(typeof(FromToNestedRecursiveС))]
-        static IEnumerable<int> FromToNestedRecursive(int b, int e)
-        {
-            FromToNestedRecursiveС src = new FromToNestedRecursiveС(-2);
             src._b = b;
             src._e = e;
             return src;
@@ -151,7 +224,7 @@ namespace YieldForEachApp
                             state = -3;
                             break;
                         case 2:
-                            this.state = -3;
+                            state = -3;
                             break;
                         default:
                             return false;
@@ -175,7 +248,7 @@ namespace YieldForEachApp
 
             private void Finally1()
             {
-                this.state = -1;
+                state = -1;
                 if (_1 == null)
                     return;
                 _1.Dispose();
@@ -209,190 +282,6 @@ namespace YieldForEachApp
                 return ((IEnumerable<int>)this).GetEnumerator();
             }
         }
-
-        [CompilerGenerated]
-        private sealed class FromToNestedRecursiveС : IRecursiveEnumerable<int>, IEnumerable<int>, IEnumerable, IEnumerator<int>, IDisposable, IEnumerator
-        {
-            private int state;
-            private int current;
-            private int initialThreadId;
-            private int b;
-            public int _b;
-            private int e;
-            public int _e;
-            private IEnumerator<int> _1;
-            private Stack<IEnumerator<int>> stack;
-
-            int IEnumerator<int>.Current
-            {
-                [DebuggerHidden]
-                get
-                {
-                    return current;
-                }
-            }
-
-            object IEnumerator.Current
-            {
-                [DebuggerHidden]
-                get
-                {
-                    return current;
-                }
-            }
-
-            [DebuggerHidden]
-            public FromToNestedRecursiveС(int state, Stack<IEnumerator<int>> stack)
-            {
-                this.state = state;
-                this.stack = stack;
-                initialThreadId = Environment.CurrentManagedThreadId;
-            }
-
-            [DebuggerHidden]
-            void IDisposable.Dispose()
-            {
-                switch (state)
-                {
-                    case -3:
-                    case 2:
-                        try
-                        {
-                        }
-                        finally
-                        {
-                            this.Finally1();
-                        }
-                        break;
-                }
-            }
-
-            bool IEnumerator.MoveNext()
-            {
-                // ISSUE: fault handler
-                try
-                {
-                    switch (state)
-                    {
-                        case 0:
-                            state = -1;
-                            if (stack == null)
-                            {
-                                stack = new Stack<IEnumerator<int>>();
-                                stack.Push(this);
-                            }
-                                if (b > e)
-                                return false;
-                            current = b;
-                            state = 1;
-                            return true;
-                        case 1:
-                            state = -1;
-
-                            //_1 = FromToNestedHacked(b + 1, e).GetEnumerator();
-                            var src = FromToNestedHacked(b + 1, e);
-                            var recursive = src as IRecursiveEnumerable<int>;
-                            if (recursive != null)
-                                _1 = recursive.GetEnumerator(stack);
-                            else
-                                _1 = src.GetEnumerator();
-
-                            state = -3;
-
-                            //break;
-                            stack.Push(_1);
-                            state = 2;
-                            return false;
-
-                        case 2:
-                            this.state = -3;
-                            break;
-                        default:
-                            return false;
-                    }
-                    //if (_1.MoveNext())
-                    //{
-                    //    current = _1.Current;
-                    //    state = 2;
-                    //    return true;
-                    //}
-                    Finally1();
-                    _1 = null;
-                    return false;
-                }
-                catch
-                {
-                    ((IDisposable)this).Dispose();
-                    throw;
-                }
-            }
-
-            private void Finally1()
-            {
-                this.state = -1;
-                if (_1 == null)
-                    return;
-                _1.Dispose();
-            }
-
-            [DebuggerHidden]
-            void IEnumerator.Reset()
-            {
-                throw new NotSupportedException();
-            }
-
-            [DebuggerHidden]
-            IEnumerator<int> IRecursiveEnumerable<int>.GetEnumerator(Stack<IEnumerator<int>> stack)
-            {
-                FromToNestedRecursiveС src;
-                if (state == -2 && initialThreadId == Environment.CurrentManagedThreadId)
-                {
-                    state = 0;
-                    this.stack = stack;
-                    src = this;
-                }
-                else
-                    src = new FromToNestedRecursiveС(0, stack);
-                src.b = _b;
-                src.e = _e;
-                return src;
-            }
-
-            [DebuggerHidden]
-            IEnumerator IEnumerable.GetEnumerator()
-            {
-                return ((IEnumerable<int>)this).GetEnumerator();
-            }
-        }
     }
 
-    interface IRecursiveEnumerable</*out*/ T>: IEnumerable<T>
-    {
-        IEnumerator<T> GetEnumerator(Stack<IEnumerator<T>> stack);
-    }
-
-    public sealed class RecursiveEnumerator<T> : IEnumerator<T>, IEnumerator, IDisposable
-    {
-        public RecursiveEnumerator(IEnumerable<T> src)
-        {
-
-        }
-        T IEnumerator<T>.Current
-        {
-            get
-            {
-                throw new NotImplementedException();
-            }
-        }
-
-        void IDisposable.Dispose()
-        {
-            throw new NotImplementedException();
-        }
-
-        void IEnumerator.Reset()
-        {
-            throw new NotImplementedException();
-        }
-    }
 }
