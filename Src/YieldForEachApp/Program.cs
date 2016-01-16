@@ -122,12 +122,13 @@ namespace YieldForEachApp
             return hl;
         }
 
-        private static IEnumerable<int> FromToNestedHyperloopNoTailLoop(int b, int e, IOldHyperloop<int> hl)
+        private static IEnumerable<int> FromToNestedHyperloopNoTailLoop(int b, int e, IHyperloopProvider<int> hlp)
         {
             if (b > e)
                 yield break;
             yield return b;
-            hl.GetHyperloop().AddLoop(FromToNestedHyperloopNoTailLoop(b + 1, e, hl).GetEnumerator());
+            var hl = hlp.GetHyperloop();
+            hl.AddLoop(FromToNestedHyperloopNoTailLoop(b + 1, e, hl).GetEnumerator());
             yield return 100;
         }
 
@@ -138,11 +139,12 @@ namespace YieldForEachApp
             return hl;
         }
 
-        private static IEnumerable<int> FromToNestedHyperloopWithTailLoop(int b, int e, IOldHyperloop<int> hl)
+        private static IEnumerable<int> FromToNestedHyperloopWithTailLoop(int b, int e, IHyperloopProvider<int> hlp)
         {
             if (b > e)
                 yield break;
             yield return b;
+            var hl = hlp.GetHyperloop();
             hl.GetHyperloop().AddTail(FromToNestedHyperloopWithTailLoop(b + 1, e, hl).GetEnumerator());
         }
 
@@ -153,12 +155,12 @@ namespace YieldForEachApp
             return hl;
         }
 
-        private static IEnumerable<int> FromToNestedHyperloopNoTail2Loop(int b, int e, IOldHyperloop<int> hl)
+        private static IEnumerable<int> FromToNestedHyperloopNoTail2Loop(int b, int e, IHyperloopProvider<int> hlp)
         {
             if (b > e)
                 yield break;
             yield return b;
-            hl = hl.GetHyperloop();
+            var hl = hlp.GetHyperloop();
             hl.AddLoop((FromToNestedHyperloopNoTail22(b + 1, e) as ILoopProvider<int>).GetLoop(hl));
             yield return 100;
         }
@@ -170,12 +172,12 @@ namespace YieldForEachApp
             return hl;
         }
 
-        private static IEnumerable<int> FromToNestedHyperloopNoTail22Loop(int b, int e, IOldHyperloop<int> hl)
+        private static IEnumerable<int> FromToNestedHyperloopNoTail22Loop(int b, int e, IHyperloopProvider<int> hlp)
         {
             if (b > e)
                 yield break;
             yield return b;
-            hl = hl.GetHyperloop();
+            var hl = hlp.GetHyperloop();
             hl.AddLoop((FromToNestedHyperloopNoTail2(b + 1, e) as ILoopProvider<int>).GetLoop(hl));
             yield return 100;
         }
@@ -187,12 +189,12 @@ namespace YieldForEachApp
             return hl;
         }
 
-        private static IEnumerable<int> FromToNestedHyperloopWithTail2Loop(int b, int e, IOldHyperloop<int> hl)
+        private static IEnumerable<int> FromToNestedHyperloopWithTail2Loop(int b, int e, IHyperloopProvider<int> hlp)
         {
             if (b > e)
                 yield break;
             yield return b;
-            hl = hl.GetHyperloop();
+            var hl = hlp.GetHyperloop();
             hl.AddTail((FromToNestedHyperloopWithTail22(b + 1, e) as ILoopProvider<int>).GetLoop(hl));
         }
 
@@ -203,12 +205,12 @@ namespace YieldForEachApp
             return hl;
         }
 
-        private static IEnumerable<int> FromToNestedHyperloopWithTail22Loop(int b, int e, IOldHyperloop<int> hl)
+        private static IEnumerable<int> FromToNestedHyperloopWithTail22Loop(int b, int e, IHyperloopProvider<int> hlp)
         {
             if (b > e)
                 yield break;
             yield return b;
-            hl = hl.GetHyperloop();
+            var hl = hlp.GetHyperloop();
             hl.AddLoop((FromToNestedHyperloopWithTail2(b + 1, e) as ILoopProvider<int>).GetLoop(hl));
         }
 

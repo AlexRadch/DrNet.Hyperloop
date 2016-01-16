@@ -15,24 +15,20 @@ namespace YieldForEachApp
         IEnumerator<T> GetLoop(IHyperloop<T> hyperloop);
     }
 
-    public interface IOldHyperloop</*out*/ T> : IHyperloop<T>, ILoopProvider<T>
+    public interface IOldHyperloop</*out*/ T>: IHyperloop<T>, IHyperloopProvider<T>
+    { }
+
+    public interface IHyperloopProvider</*out*/ T>
     {
         IOldHyperloop<T> GetHyperloop();
     }
 
-    public sealed class Hyperloop<T> : IOldHyperloop<T>, IHyperloop<T>, ILoopProvider<T>,
+    public sealed class Hyperloop<T> : IHyperloop<T>, ILoopProvider<T>, IHyperloopProvider<T>, IOldHyperloop<T>,
         IEnumerable<T>, IEnumerable, IEnumerator<T>, IEnumerator, IDisposable
     {
         //private bool loopAdded;
         private Sequence<IEnumerator<T>> loops;
         private IOldHyperloop<T> hyperloop;
-
-        IOldHyperloop<T> IOldHyperloop<T>.GetHyperloop()
-        {
-            if (hyperloop == null)
-                return this;
-            return hyperloop;
-        }
 
         public void AddLoop(IEnumerator<T> loop)
         {
@@ -85,6 +81,13 @@ namespace YieldForEachApp
                 }
             }
             return this; // should not get control any time
+        }
+
+        IOldHyperloop<T> IHyperloopProvider<T>.GetHyperloop()
+        {
+            if (hyperloop == null)
+                return this;
+            return hyperloop;
         }
 
         IEnumerator<T> IEnumerable<T>.GetEnumerator()
@@ -144,4 +147,21 @@ namespace YieldForEachApp
         }
     }
 
+    public class Sequence<T>
+    {
+        public T head;
+        public Sequence<T> tail;
+
+        public Sequence(T head)
+        {
+            this.head = head;
+            tail = null;
+        }
+
+        public Sequence(T head, Sequence<T> tail)
+        {
+            this.head = head;
+            this.tail = tail;
+        }
+    }
 }

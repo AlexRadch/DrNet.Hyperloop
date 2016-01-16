@@ -91,22 +91,4 @@ namespace YieldForEachApp
                 DisposeLoop();
         }
     }
-
-    public class Sequence<T>
-    {
-        public T head;
-        public Sequence<T> tail;
-
-        public Sequence(T head)
-        {
-            this.head = head;
-            tail = null;
-        }
-
-        public Sequence(T head, Sequence<T> tail)
-        {
-            this.head = head;
-            this.tail = tail;
-        }
-    }
 }
