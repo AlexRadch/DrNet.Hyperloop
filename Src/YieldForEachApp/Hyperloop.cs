@@ -15,23 +15,26 @@ namespace YieldForEachApp
         IEnumerator<T> GetLoop(IHyperloop<T> hyperloop);
     }
 
-    public sealed class Hyperloop<T>: IHyperloop<T>, ILoopProvider<T>, 
+    public interface IOldHyperloop</*out*/ T> : IHyperloop<T>, ILoopProvider<T>
+    {
+        IOldHyperloop<T> GetHyperloop();
+    }
+
+    public sealed class Hyperloop<T> : IOldHyperloop<T>, IHyperloop<T>, ILoopProvider<T>,
         IEnumerable<T>, IEnumerable, IEnumerator<T>, IEnumerator, IDisposable
     {
         //private bool loopAdded;
         private Sequence<IEnumerator<T>> loops;
+        private IOldHyperloop<T> hyperloop;
 
-        public Hyperloop(IEnumerable<T> loop)
+        IOldHyperloop<T> IOldHyperloop<T>.GetHyperloop()
         {
-            ((IHyperloop<T>)this).AddLoop(loop.GetEnumerator());
+            if (hyperloop == null)
+                return this;
+            return hyperloop;
         }
 
-        public Hyperloop(IEnumerator<T> loop)
-        {
-            ((IHyperloop<T>)this).AddLoop(loop);
-        }
-
-        void IHyperloop<T>.AddLoop(IEnumerator<T> loop)
+        public void AddLoop(IEnumerator<T> loop)
         {
             try
             {
@@ -45,7 +48,7 @@ namespace YieldForEachApp
             //loopAdded = true;
         }
 
-        void IHyperloop<T>.AddTail(IEnumerator<T> loop)
+        public void AddTail(IEnumerator<T> loop)
         {
             try
             {
@@ -69,17 +72,21 @@ namespace YieldForEachApp
             loop.Dispose();
         }
 
-        IEnumerator<T> ILoopProvider<T>.GetLoop(IHyperloop<T> hyperloop) // can get control from other accessibility level
+        IEnumerator<T> ILoopProvider<T>.GetLoop(IHyperloop<T> hyperloop)
         {
             if (loops != null && loops.tail == null) // should be true always
             {
-                var loop = loops.head;
-                loops = null;
-                return loop;
+                this.hyperloop = hyperloop as IOldHyperloop<T>;
+                if (this.hyperloop != null) // should be true always
+                {
+                    var loop = loops.head;
+                    loops = null;
+                    return loop;
+                }
             }
-            else
-                return this; // should not get control any time
+            return this; // should not get control any time
         }
+
         IEnumerator<T> IEnumerable<T>.GetEnumerator()
         {
             return this;
@@ -111,13 +118,15 @@ namespace YieldForEachApp
             while (loops != null)
             {
                 Sequence<IEnumerator<T>> oldLoops;
+                bool moveNext;
                 do
                 {
                     oldLoops = loops;
-                    if (loops.head.MoveNext())
-                        return true;
+                    moveNext = loops.head.MoveNext();
                 }
                 while (oldLoops != loops);
+                if (moveNext)
+                    return true;
                 DisposeLoop();
             }
             return false;
@@ -135,21 +144,4 @@ namespace YieldForEachApp
         }
     }
 
-    internal class Sequence<T>
-    {
-        public T head;
-        public Sequence<T> tail;
-
-        public Sequence(T head)
-        {
-            this.head = head;
-            tail = null;
-        }
-
-        public Sequence(T head, Sequence<T> tail)
-        {
-            this.head = head;
-            this.tail = tail;
-        }
-    }
 }

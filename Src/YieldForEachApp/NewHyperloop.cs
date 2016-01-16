@@ -4,17 +4,10 @@ using System.Collections.Generic;
 
 namespace YieldForEachApp
 {
-    public interface IHyperloopProvider</*out*/ T>
-    {
-        IHyperloop<T> GetHyperloop();
-    }
-
-    public sealed class OldHyperloop<T> : IHyperloop<T>, ILoopProvider<T>, IHyperloopProvider<T>,
-        IEnumerable<T>, IEnumerable, IEnumerator<T>, IEnumerator, IDisposable
+    public abstract class NewHyperloop<T>: IHyperloop<T>, IEnumerator<T>, IEnumerator, IDisposable
     {
         //private bool loopAdded;
-        private Sequence<IEnumerator<T>> loops;
-        private IHyperloop<T> hyperloop;
+        protected Sequence<IEnumerator<T>> loops;
 
         public void AddLoop(IEnumerator<T> loop)
         {
@@ -30,7 +23,7 @@ namespace YieldForEachApp
             //loopAdded = true;
         }
 
-        public void AddTail(IEnumerator<T> loop)
+        void IHyperloop<T>.AddTail(IEnumerator<T> loop)
         {
             try
             {
@@ -54,36 +47,6 @@ namespace YieldForEachApp
             loop.Dispose();
         }
 
-        IEnumerator<T> ILoopProvider<T>.GetLoop(IHyperloop<T> hyperloop)
-        {
-            if (loops != null && loops.tail == null) // should be true always
-            {
-                this.hyperloop = hyperloop;
-                var loop = loops.head;
-                loops = null;
-                return loop;
-            }
-            else
-                return this; // should not get control any time
-        }
-
-        IHyperloop<T> IHyperloopProvider<T>.GetHyperloop()
-        {
-            if (hyperloop == null)
-                return this;
-            return hyperloop;
-        }
-
-        IEnumerator<T> IEnumerable<T>.GetEnumerator()
-        {
-            return this;
-        }
-
-        IEnumerator IEnumerable.GetEnumerator()
-        {
-            return this;
-        }
-
         T IEnumerator<T>.Current
         {
             get
@@ -105,15 +68,13 @@ namespace YieldForEachApp
             while (loops != null)
             {
                 Sequence<IEnumerator<T>> oldLoops;
-                bool moveNext;
                 do
                 {
                     oldLoops = loops;
-                    moveNext = loops.head.MoveNext();
+                    if (loops.head.MoveNext())
+                        return true;
                 }
                 while (oldLoops != loops);
-                if (moveNext)
-                    return true;
                 DisposeLoop();
             }
             return false;
@@ -131,4 +92,21 @@ namespace YieldForEachApp
         }
     }
 
+    public class Sequence<T>
+    {
+        public T head;
+        public Sequence<T> tail;
+
+        public Sequence(T head)
+        {
+            this.head = head;
+            tail = null;
+        }
+
+        public Sequence(T head, Sequence<T> tail)
+        {
+            this.head = head;
+            this.tail = tail;
+        }
+    }
 }
