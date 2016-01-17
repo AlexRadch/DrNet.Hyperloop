@@ -6,7 +6,7 @@ namespace YieldForEachApp
 {
     public abstract class NewHyperloop<T>: IHyperloop<T>, IEnumerator<T>, IEnumerator, IDisposable
     {
-        //private bool loopAdded;
+        private bool loopAdded;
         protected Sequence<IEnumerator<T>> loops;
 
         public void AddLoop(IEnumerator<T> loop)
@@ -20,22 +20,21 @@ namespace YieldForEachApp
                 loop.Dispose();
                 throw;
             }
-            //loopAdded = true;
+            loopAdded = true;
         }
 
-        void IHyperloop<T>.AddTail(IEnumerator<T> loop)
+        public void AddTail(IEnumerator<T> loop)
         {
-            try
+            if (loops == null)
+                AddLoop(loop);
+            else
             {
-                DisposeLoop();
-                loops = new Sequence<IEnumerator<T>>(loop, loops);
+                var oldLoop = loops.head;
+                loops.head = loop;
+                loop = null;
+                oldLoop.Dispose();
+                loopAdded = true;
             }
-            catch
-            {
-                loop.Dispose();
-                throw;
-            }
-            //loopAdded = true;
         }
 
         private void DisposeLoop()
@@ -47,7 +46,7 @@ namespace YieldForEachApp
             loop.Dispose();
         }
 
-        T IEnumerator<T>.Current
+        public T Current
         {
             get
             {
@@ -63,32 +62,41 @@ namespace YieldForEachApp
             }
         }
 
-        bool IEnumerator.MoveNext()
+        public bool MoveNext()
         {
             while (loops != null)
             {
-                Sequence<IEnumerator<T>> oldLoops;
                 do
                 {
-                    oldLoops = loops;
+                    loopAdded = false;
                     if (loops.head.MoveNext())
                         return true;
                 }
-                while (oldLoops != loops);
+                while (loopAdded);
                 DisposeLoop();
             }
             return false;
         }
 
-        void IEnumerator.Reset()
+        public void Reset()
         {
             throw new NotSupportedException();
         }
 
-        void IDisposable.Dispose()
+        public void Dispose()
         {
-            while (loops != null)
-                DisposeLoop();
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                // free managed resources
+                while (loops != null)
+                    DisposeLoop();
+            }
         }
     }
 }

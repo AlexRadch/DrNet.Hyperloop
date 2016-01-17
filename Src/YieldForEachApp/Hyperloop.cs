@@ -26,7 +26,7 @@ namespace YieldForEachApp
     public sealed class Hyperloop<T> : IHyperloop<T>, ILoopProvider<T>, IHyperloopProvider<T>, IOldHyperloop<T>,
         IEnumerable<T>, IEnumerable, IEnumerator<T>, IEnumerator, IDisposable
     {
-        //private bool loopAdded;
+        private bool loopAdded;
         private Sequence<IEnumerator<T>> loops;
         private IOldHyperloop<T> hyperloop;
 
@@ -41,22 +41,21 @@ namespace YieldForEachApp
                 loop.Dispose();
                 throw;
             }
-            //loopAdded = true;
+            loopAdded = true;
         }
 
         public void AddTail(IEnumerator<T> loop)
         {
-            try
+            if (loops == null)
+                AddLoop(loop);
+            else
             {
-                DisposeLoop();
-                loops = new Sequence<IEnumerator<T>>(loop, loops);
+                var oldLoop = loops.head;
+                loops.head = loop;
+                loop = null;
+                oldLoop.Dispose();
+                loopAdded = true;
             }
-            catch
-            {
-                loop.Dispose();
-                throw;
-            }
-            //loopAdded = true;
         }
 
         private void DisposeLoop()
@@ -120,14 +119,13 @@ namespace YieldForEachApp
         {
             while (loops != null)
             {
-                Sequence<IEnumerator<T>> oldLoops;
                 bool moveNext;
                 do
                 {
-                    oldLoops = loops;
+                    loopAdded = false;
                     moveNext = loops.head.MoveNext();
                 }
-                while (oldLoops != loops);
+                while (loopAdded);
                 if (moveNext)
                     return true;
                 DisposeLoop();
@@ -140,10 +138,14 @@ namespace YieldForEachApp
             throw new NotSupportedException();
         }
 
-        void IDisposable.Dispose()
+        public void Dispose()
         {
             while (loops != null)
-                DisposeLoop();
+            {
+                var loop = loops.head;
+                loops = loops.tail;
+                loop.Dispose();
+            }
         }
     }
 
