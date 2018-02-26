@@ -29,6 +29,9 @@ namespace YieldForEachApp
 
         public void Add(IEnumerator<T> loop)
         {
+            if (loop == null)
+                throw new ArgumentNullException(nameof(loop));
+
             if (_workNode == null)
                 _loops.AddFirst(loop);
             else
@@ -39,50 +42,36 @@ namespace YieldForEachApp
 
         #region IEnumerable
 
-        public IEnumerator<T> GetEnumerator()
-        {
-            return this;
-        }
+        public IEnumerator<T> GetEnumerator() => this;
 
-        IEnumerator IEnumerable.GetEnumerator()
-        {
-            return GetEnumerator();
-        }
+        IEnumerator IEnumerable.GetEnumerator() => this;
 
         #endregion
 
         #region IEnumerator
 
-        private LinkedListNode<IEnumerator<T>> CurrentNode => _loops.Last;
+        public T Current => _loops.Last.Value.Current;
 
-        private static LinkedListNode<IEnumerator<T>> NextNode(LinkedListNode<IEnumerator<T>> node)
-        {
-            return node.Next;
-        }
-
-        public T Current => CurrentNode.Value.Current;
-
-        object IEnumerator.Current => CurrentNode.Value.Current;
+        object IEnumerator.Current => _loops.Last.Value.Current;
 
         public bool MoveNext()
         {
             while (_loops.Count > 0)
             {
-                _workNode = CurrentNode;
+                _workNode = _loops.Last;
                 if (_workNode.Value.MoveNext())
                 {
-                    if (NextNode(_workNode) == null)
+                    if (_workNode.Next == null)
                         return true;
                 }
                 else
                 {
-                    if (NextNode(_workNode) == null)
+                    if (_workNode.Next == null)
                     {
                         Dispose(_workNode);
                         return _loops.Count > 0;
                     }
-                    else
-                        Dispose(_workNode);
+                    Dispose(_workNode);
                 }
             }
             return false;
