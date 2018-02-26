@@ -11,7 +11,7 @@ namespace YieldForEachApp
         static void Main(/*string[] args*/)
         {
             var b = 1;
-            var end = 1024;
+            var end = 64; // 1024;
             var times = 100;
 
             var bLen = $"{b:N0}".Length;
@@ -78,6 +78,10 @@ namespace YieldForEachApp
                 Console.WriteLine(fmt, "RR3 HL", b, e, times, time.Item1, time.Item2);
             }
 
+            foreach (var i in DumpAndIterateFromBack(10));
+
+            foreach (var i in DumpAndIterateFromBack_Hl(10));
+
             Console.ReadLine();
         }
 
@@ -103,6 +107,37 @@ namespace YieldForEachApp
             return Tuple.Create(sw.ElapsedTicks, res);
         }
 
+        static IEnumerable<int> DumpAndIterateFromBack(int e)
+        {
+            if (e <= 0)
+                yield break;
+
+            foreach (var x in DumpAndIterateFromBack(e - 1))
+                yield return x;
+
+            Console.WriteLine(e);
+            yield return e;
+        }
+
+        static IEnumerable<int> DumpAndIterateFromBack_Hl(int e)
+        {
+            var hl = new Hyperloop<int>();
+            hl.Add(DumpAndIterateFromBack_HlImp(hl, e));
+            return hl;
+        }
+
+        static IEnumerable<int> DumpAndIterateFromBack_HlImp(IHyperloop<int> hl, int e)
+        {
+            if (e <= 0)
+                yield break;
+
+            hl.Add(DumpAndIterateFromBack_HlImp(hl, e - 1));
+            yield return default(int); // will be skiped to support code with side effects
+
+            Console.WriteLine(e);
+            yield return e;
+        }
+
         static IEnumerable<int> RangeRecursive1(int b, int e)
         {
             if (b > e)
@@ -124,6 +159,7 @@ namespace YieldForEachApp
             if (b > e)
                 yield break;
             yield return b;
+
             hl.Add(RangeRecursive1_HlImp(hl, b + 1, e));
         }
 
@@ -147,7 +183,10 @@ namespace YieldForEachApp
         {
             if (b > e)
                 yield break;
+
             hl.Add(RangeRecursive2_HlImp(hl, b, e - 1));
+            yield return default(int); // will be skiped to support code with side effects
+
             yield return e;
         }
 
@@ -195,7 +234,10 @@ namespace YieldForEachApp
         {
             if (b > e)
                 yield break;
+
             hl.Add(RangeRecursive31_HlImp(hl, b, e - 1));
+            yield return default(int); // will be skiped to support code with side effects
+
             yield return e;
         }
 

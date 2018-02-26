@@ -65,14 +65,7 @@ namespace YieldForEachApp
                         return true;
                 }
                 else
-                {
-                    if (_workNode.Next == null)
-                    {
-                        Dispose(_workNode);
-                        return _loops.Count > 0;
-                    }
                     Dispose(_workNode);
-                }
             }
             return false;
         }
