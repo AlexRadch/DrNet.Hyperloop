@@ -5,13 +5,13 @@ using System.Collections.Generic;
 namespace YieldForEachApp
 {
 
-    public interface IHyperloop<T>: IEnumerable<T>
+    public interface IHyperloop<in T>
     {
         void Add(IEnumerable<T> source);
         void Add(IEnumerator<T> loop);
     }
 
-    public sealed class Hyperloop<T>: IHyperloop<T>, /* IEnumerable<T>, IEnumerable */ IEnumerator<T> /*, IEnumerator, IDisposable */
+    public sealed class Hyperloop<T>: IHyperloop<T>, IEnumerable<T>, /*IEnumerable,*/ IEnumerator<T> /*, IEnumerator, IDisposable */
     {
 
         private readonly LinkedList<IEnumerator<T>> _loops = new LinkedList<IEnumerator<T>>();
