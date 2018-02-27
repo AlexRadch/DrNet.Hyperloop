@@ -14,8 +14,21 @@ namespace YieldForEachApp
     public sealed class Hyperloop<T>: IHyperloop<T>, IEnumerable<T>, /*IEnumerable,*/ IEnumerator<T> /*, IEnumerator, IDisposable */
     {
 
-        private readonly LinkedList<IEnumerator<T>> _loops = new LinkedList<IEnumerator<T>>();
-        private LinkedListNode<IEnumerator<T>> _workNode;
+        private readonly Stack<IEnumerator<T>> _loops;
+
+        #region Constructor
+
+        public Hyperloop()
+        {
+            _loops = new Stack<IEnumerator<T>>();
+        }
+
+        public Hyperloop(int capacity)
+        {
+            _loops = new Stack<IEnumerator<T>>(capacity);
+        }
+
+        #endregion
 
         #region IHyperloop
 
@@ -32,10 +45,7 @@ namespace YieldForEachApp
             if (loop == null)
                 throw new ArgumentNullException(nameof(loop));
 
-            if (_workNode == null)
-                _loops.AddFirst(loop);
-            else
-                _loops.AddAfter(_workNode, loop);
+            _loops.Push(loop);
         }
 
         #endregion
@@ -50,22 +60,22 @@ namespace YieldForEachApp
 
         #region IEnumerator
 
-        public T Current => _loops.Last.Value.Current;
+        public T Current => _loops.Peek().Current;
 
-        object IEnumerator.Current => _loops.Last.Value.Current;
+        object IEnumerator.Current => _loops.Peek().Current;
 
         public bool MoveNext()
         {
             while (_loops.Count > 0)
             {
-                _workNode = _loops.Last;
-                if (_workNode.Value.MoveNext())
+                var workNode = _loops.Peek();
+                if (workNode.MoveNext())
                 {
-                    if (_workNode.Next == null)
+                    if (workNode == _loops.Peek())
                         return true;
                 }
                 else
-                    Dispose(_workNode);
+                    _loops.Pop().Dispose();
             }
             return false;
         }
@@ -83,12 +93,6 @@ namespace YieldForEachApp
         {
             Dispose(true);
             // GC.SuppressFinalize(this);
-        }
-
-        private void Dispose(LinkedListNode<IEnumerator<T>> node)
-        {
-            _loops.Remove(node);
-            node.Value.Dispose();
         }
 
         /*protected virtual*/ void Dispose(bool disposing)

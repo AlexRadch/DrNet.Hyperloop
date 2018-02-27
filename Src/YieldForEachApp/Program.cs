@@ -11,7 +11,7 @@ namespace YieldForEachApp
         static void Main(/*string[] args*/)
         {
             var b = 1;
-            var end = 64; // 1024;
+            var end = 1024;
             var times = 100;
 
             var bLen = $"{b:N0}".Length;
@@ -78,9 +78,9 @@ namespace YieldForEachApp
                 Console.WriteLine(fmt, "RR3 HL", b, e, times, time.Item1, time.Item2);
             }
 
-            foreach (var i in DumpAndIterateFromBack(10));
+            foreach (var i in DumpAndIterateFromBack(10)) { }
 
-            foreach (var i in DumpAndIterateFromBack_Hl(10));
+            foreach (var i in DumpAndIterateFromBack_Hl(10)) { }
 
             Console.ReadLine();
         }
@@ -121,7 +121,7 @@ namespace YieldForEachApp
 
         static IEnumerable<int> DumpAndIterateFromBack_Hl(int e)
         {
-            var hl = new Hyperloop<int>();
+            var hl = new Hyperloop<int>(e + 1);
             hl.Add(DumpAndIterateFromBack_HlImp(hl, e));
             return hl;
         }
@@ -132,7 +132,7 @@ namespace YieldForEachApp
                 yield break;
 
             hl.Add(DumpAndIterateFromBack_HlImp(hl, e - 1));
-            yield return default(int); // will be skiped to support code with side effects
+            yield return default(int); // will be skiped
 
             Console.WriteLine(e);
             yield return e;
@@ -149,7 +149,7 @@ namespace YieldForEachApp
 
         static IEnumerable<int> RangeRecursive1_Hl(int b, int e)
         {
-            var hl = new Hyperloop<int>();
+            var hl = new Hyperloop<int>(Math.Max(1, e - b + 2));
             hl.Add(RangeRecursive1_HlImp(hl, b, e));
             return hl;
         }
@@ -161,6 +161,7 @@ namespace YieldForEachApp
             yield return b;
 
             hl.Add(RangeRecursive1_HlImp(hl, b + 1, e));
+            yield return default(int); // will be skiped
         }
 
         static IEnumerable<int> RangeRecursive2(int b, int e)
@@ -174,7 +175,7 @@ namespace YieldForEachApp
 
         static IEnumerable<int> RangeRecursive2_Hl(int b, int e)
         {
-            var hl = new Hyperloop<int>();
+            var hl = new Hyperloop<int>(Math.Max(1, e - b + 2));
             hl.Add(RangeRecursive2_HlImp(hl, b, e));
             return hl;
         }
@@ -185,7 +186,7 @@ namespace YieldForEachApp
                 yield break;
 
             hl.Add(RangeRecursive2_HlImp(hl, b, e - 1));
-            yield return default(int); // will be skiped to support code with side effects
+            yield return default(int); // will be skiped
 
             yield return e;
         }
@@ -210,7 +211,7 @@ namespace YieldForEachApp
 
         static IEnumerable<int> RangeRecursive31_Hl(int b, int e)
         {
-            var hl = new Hyperloop<int>();
+            var hl = new Hyperloop<int>(Math.Max(1, e - b + 2));
             hl.Add(RangeRecursive31_HlImp(hl, b, e));
             return hl;
         }
@@ -220,12 +221,14 @@ namespace YieldForEachApp
             if (b > e)
                 yield break;
             yield return b;
+
             hl.Add(RangeRecursive32_HlImp(hl, b + 1, e));
+            yield return default(int); // will be skiped
         }
 
         static IEnumerable<int> RangeRecursive32_Hl(int b, int e)
         {
-            var hl = new Hyperloop<int>();
+            var hl = new Hyperloop<int>(Math.Max(1, e - b + 2));
             hl.Add(RangeRecursive32_HlImp(hl, b, e));
             return hl;
         }
@@ -236,7 +239,7 @@ namespace YieldForEachApp
                 yield break;
 
             hl.Add(RangeRecursive31_HlImp(hl, b, e - 1));
-            yield return default(int); // will be skiped to support code with side effects
+            yield return default(int); // will be skiped
 
             yield return e;
         }
