@@ -16,12 +16,12 @@ namespace DrNet
         /// <summary>
         /// Function that return implementation of non-quadratic recursive iterations enumerable.
         /// </summary>
-        private Func<IHyperloopRecursion<T>, IEnumerable<T>>? EnumerableImplementation { get; set; }
+        private Func<HyperloopRecursions<T>, IEnumerable<T>>? EnumerableImplementation { get; set; }
 
         /// <summary>
         /// Function that return implementation of non-quadratic recursive iterations enumerator.
         /// </summary>
-        private Func<IHyperloopRecursion<T>, IEnumerator<T>>? EnumeratorImplementation { get; set; }
+        private Func<HyperloopRecursions<T>, IEnumerator<T>>? EnumeratorImplementation { get; set; }
 
         /// <summary>
         /// Recursion depth if you know it or less 0 if you don't know it.
@@ -37,7 +37,7 @@ namespace DrNet
         /// </summary>
         /// 
         /// <param name="implementation">Function that return implementation of non-quadratic recursive iterations enumerable.</param>
-        public Hyperloop(Func<IHyperloopRecursion<T>, IEnumerable<T>> implementation) : this(implementation, -1) { }
+        public Hyperloop(Func<HyperloopRecursions<T>, IEnumerable<T>> implementation) : this(implementation, -1) { }
 
         /// <summary>
         /// Creates non-quadratic recursive enumerable.
@@ -46,7 +46,7 @@ namespace DrNet
         /// <param name="implementation">Function that return implementation of non-quadratic recursive iterations enumerable.</param>
         /// 
         /// <param name="depth">Recursion depth.</param>
-        public Hyperloop(Func<IHyperloopRecursion<T>, IEnumerable<T>> implementation, int depth)
+        public Hyperloop(Func<HyperloopRecursions<T>, IEnumerable<T>> implementation, int depth)
         {
             EnumerableImplementation = implementation;
             Depth = depth;
@@ -57,7 +57,7 @@ namespace DrNet
         /// </summary>
         /// 
         /// <param name="implementation">Function that return implementation of non-quadratic recursive iterations enumerator.</param>
-        public Hyperloop(Func<IHyperloopRecursion<T>, IEnumerator<T>> implementation) : this(implementation, -1) { }
+        public Hyperloop(Func<HyperloopRecursions<T>, IEnumerator<T>> implementation) : this(implementation, -1) { }
 
         /// <summary>
         /// Creates non-quadratic recursive enumerable.
@@ -66,7 +66,7 @@ namespace DrNet
         /// <param name="implementation">Function that return implementation of non-quadratic recursive iterations enumerator.</param>
         /// 
         /// <param name="depth">Recursion depth.</param>
-        public Hyperloop(Func<IHyperloopRecursion<T>, IEnumerator<T>> implementation, int depth)
+        public Hyperloop(Func<HyperloopRecursions<T>, IEnumerator<T>> implementation, int depth)
         {
             EnumeratorImplementation = implementation;
             Depth = depth;
@@ -86,9 +86,9 @@ namespace DrNet
             var enumerator = new Enumerator(Depth);
 
             if (!(EnumerableImplementation is null))
-                enumerator.Add(EnumerableImplementation(enumerator));
+                enumerator._recursions.Add(EnumerableImplementation(enumerator._recursions));
             else if (!(EnumeratorImplementation is null))
-                enumerator.Add(EnumeratorImplementation(enumerator));
+                enumerator._recursions.Add(EnumeratorImplementation(enumerator._recursions));
 
             return enumerator;
         }
@@ -104,11 +104,11 @@ namespace DrNet
         /// <summary>
         /// Implement non-quadratic recursive enumerator that iterates through the recursive collection.
         /// </summary>
-        public struct Enumerator : IHyperloopRecursion<T>, IEnumerator<T>
+        public struct Enumerator : IEnumerator<T>
         {
             #region private properties
 
-            private readonly Stack<IEnumerator<T>> _stack;
+            internal readonly HyperloopRecursions<T> _recursions;
 
             #endregion
 
@@ -119,45 +119,9 @@ namespace DrNet
             /// </summary>
             /// 
             /// <param name="depth">Recursion depth if you know it or less 0 if you don't know it.</param>
-            public Enumerator(int depth)
+            internal Enumerator(int depth)
             {
-                _stack = depth >= 0 ? new Stack<IEnumerator<T>>(depth) : new Stack<IEnumerator<T>>();
-            }
-
-            #endregion
-
-            #region IHyperloopRecursion
-
-            /// <summary>
-            /// Add recursion in non-quadratic recursive iterations.
-            /// </summary>
-            /// 
-            /// <param name="recursion"></param>
-            public void Add(IEnumerable<T> recursion) => Add(recursion.GetEnumerator());
-
-            /// <summary>
-            /// Add recursion in non-quadratic recursive iterations.
-            /// </summary>
-            /// 
-            /// <param name="recursion"></param>
-            public void Add(IEnumerator<T> recursion) => _stack.Push(recursion);
-
-            /// <summary>
-            /// Add tail recursion in non-quadratic recursive iterations.
-            /// </summary>
-            /// 
-            /// <param name="recursion"></param>
-            public void AddTail(IEnumerable<T> recursion) => AddTail(recursion.GetEnumerator());
-
-            /// <summary>
-            /// Add recursion in non-quadratic recursive iterations.
-            /// </summary>
-            /// 
-            /// <param name="recursion"></param>
-            public void AddTail(IEnumerator<T> recursion)
-            {
-                _stack.Pop().Dispose();
-                _stack.Push(recursion);
+                _recursions = new HyperloopRecursions<T>(depth);
             }
 
             #endregion
@@ -167,7 +131,7 @@ namespace DrNet
             /// <summary>
             /// Gets the element in the collection at the current position of the enumerator.
             /// </summary>
-            public T Current => _stack.Peek().Current;
+            public T Current => _recursions._stack.Peek().Current;
 
             object IEnumerator.Current => Current!;
 
@@ -181,18 +145,18 @@ namespace DrNet
             /// </returns>
             public bool MoveNext()
             {
-                while (_stack.Count > 0)
+                while (_recursions._stack.Count > 0)
                 {
-                    IEnumerator<T> workNode = _stack.Peek();
+                    IEnumerator<T> workNode = _recursions._stack.Peek();
                     if (workNode.MoveNext())
                     {
-                        if (_stack.Peek() == workNode)
+                        if (_recursions._stack.Peek() == workNode)
                             return true;
                     }
                     else
                     {
-                        if (_stack.Peek() == workNode)
-                            _stack.Pop().Dispose();
+                        if (_recursions._stack.Peek() == workNode)
+                            _recursions._stack.Pop().Dispose();
                     }
                 }
                 return false;
@@ -209,19 +173,10 @@ namespace DrNet
             /// </summary>
             public void Dispose()
             {
-                Dispose(true);
-                // GC.SuppressFinalize(this);
-            }
+                while (_recursions._stack.Count > 0)
+                    _recursions._stack.Pop().Dispose();
 
-            void Dispose(bool disposing)
-            {
-                if (!disposing)
-                    return;
-
-                while (_stack.Count > 0)
-                    _stack.Pop().Dispose();
-
-                _stack.Clear();
+                _recursions._stack.Clear();
             }
 
             #endregion

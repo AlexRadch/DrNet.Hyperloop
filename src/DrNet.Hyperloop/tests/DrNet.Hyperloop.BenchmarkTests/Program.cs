@@ -7,7 +7,7 @@ namespace DrNet.Hyperloop.BenchmarkTests
     {
         public static void Main(string[] args)
         {
-            var summary = BenchmarkRunner.Run<HyperloopBenchmarks>();
+            var hyperloopSummary = BenchmarkRunner.Run<HyperloopBenchmarks>();
         }
     }
 }

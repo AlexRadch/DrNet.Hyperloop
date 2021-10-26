@@ -120,7 +120,7 @@ namespace DrNet.Tests
         protected Hyperloop<int> RecursiveRangeHl(int start, int count)
             => new Hyperloop<int>(recursion => RecursiveRange_Impl(recursion, start, count));
 
-        protected IEnumerable<int> RecursiveRange_Impl(IHyperloopRecursion<int> recursion, int start, int count)
+        protected IEnumerable<int> RecursiveRange_Impl(HyperloopRecursions<int> recursion, int start, int count)
         {
             if (count <= 1)
             {
@@ -158,7 +158,7 @@ namespace DrNet.Tests
         protected Hyperloop<int> RecursiveRangeHl_TailOptimization(int start, int count)
             => new Hyperloop<int>(recursion => RecursiveRange_Impl_TailOptimization(recursion, start, count));
 
-        protected IEnumerable<int> RecursiveRange_Impl_TailOptimization(IHyperloopRecursion<int> recursion, int start, int count)
+        protected IEnumerable<int> RecursiveRange_Impl_TailOptimization(HyperloopRecursions<int> recursion, int start, int count)
         {
             if (count <= 1)
             {
@@ -202,7 +202,7 @@ namespace DrNet.Tests
         protected Hyperloop<int> RecursiveRangeHl_OrderOptimization(int start, int count)
             => new Hyperloop<int>(recursion => RecursiveRange_Impl_OrderOptimization(recursion, start, count));
 
-        protected IEnumerable<int> RecursiveRange_Impl_OrderOptimization(IHyperloopRecursion<int> recursion, int start, int count)
+        protected IEnumerable<int> RecursiveRange_Impl_OrderOptimization(HyperloopRecursions<int> recursion, int start, int count)
         {
             if (count <= 1)
             {
@@ -239,7 +239,7 @@ namespace DrNet.Tests
         protected Hyperloop<int> RecursiveRangeHl_TailOrderOptimization(int start, int count)
             => new Hyperloop<int>(recursion => RecursiveRange_Impl_TailOrderOptimization(recursion, start, count));
 
-        protected IEnumerable<int> RecursiveRange_Impl_TailOrderOptimization(IHyperloopRecursion<int> recursion, int start, int count)
+        protected IEnumerable<int> RecursiveRange_Impl_TailOrderOptimization(HyperloopRecursions<int> recursion, int start, int count)
         {
             if (count <= 1)
             {
