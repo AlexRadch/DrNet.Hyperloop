@@ -1,0 +1,46 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31808.319
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DrNet.Hyperloop", "src\DrNet.Hyperloop.csproj", "{993CD5F3-AF28-4942-A136-3FE9AC0B6A5C}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{09E9B7DA-C5BB-4CCE-B963-12DD86E90CD6}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{6EB08D30-21D9-418A-A238-0764FB1BA6CA}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DrNet.Hyperloop.BenchmarkTests", "tests\DrNet.Hyperloop.BenchmarkTests\DrNet.Hyperloop.BenchmarkTests.csproj", "{A0AA63B9-74CB-4747-BA12-F2C97F21A26F}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DrNet.Hyperloop.Tests", "tests\DrNet.Hyperloop.Tests\DrNet.Hyperloop.Tests.csproj", "{7B418D42-D9D4-4CB2-A696-9E4CFAD90C64}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{993CD5F3-AF28-4942-A136-3FE9AC0B6A5C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{993CD5F3-AF28-4942-A136-3FE9AC0B6A5C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{993CD5F3-AF28-4942-A136-3FE9AC0B6A5C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{993CD5F3-AF28-4942-A136-3FE9AC0B6A5C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A0AA63B9-74CB-4747-BA12-F2C97F21A26F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A0AA63B9-74CB-4747-BA12-F2C97F21A26F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A0AA63B9-74CB-4747-BA12-F2C97F21A26F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A0AA63B9-74CB-4747-BA12-F2C97F21A26F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7B418D42-D9D4-4CB2-A696-9E4CFAD90C64}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7B418D42-D9D4-4CB2-A696-9E4CFAD90C64}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7B418D42-D9D4-4CB2-A696-9E4CFAD90C64}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7B418D42-D9D4-4CB2-A696-9E4CFAD90C64}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{993CD5F3-AF28-4942-A136-3FE9AC0B6A5C} = {09E9B7DA-C5BB-4CCE-B963-12DD86E90CD6}
+		{A0AA63B9-74CB-4747-BA12-F2C97F21A26F} = {6EB08D30-21D9-418A-A238-0764FB1BA6CA}
+		{7B418D42-D9D4-4CB2-A696-9E4CFAD90C64} = {6EB08D30-21D9-418A-A238-0764FB1BA6CA}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {DA55988F-A349-4B9B-A70E-97F117037CFA}
+	EndGlobalSection
+EndGlobal
