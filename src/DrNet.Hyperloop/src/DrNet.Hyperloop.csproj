@@ -20,7 +20,7 @@
     <RootNamespace>DrNet</RootNamespace>
 
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <Description>Hyperloop .NET library for all supported platforms.</Description>
+    <Description>DrNet.Hyperloop library helps to rewrites recursive iterators to linear execution time dependence on the recursion depth with minimal code refactory.</Description>
   </PropertyGroup>
 
   <ItemGroup>

@@ -4,7 +4,7 @@
     <Version>6.0.0-preview.7.21377.10</Version>
     <Authors>.NET Foundation and Contributors</Authors>
     <Company>.NET Foundation and Contributors</Company>
-    <Product>HyperLoop .Net libraries</Product>
+    <Product>DrNet.Hyperloop .Net libraries</Product>
     <Copyright>Copyright (c) .NET Foundation and Contributors</Copyright>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageProjectUrl>https://github.com/AlexRadch/DrNet.Hyperloop</PackageProjectUrl>
